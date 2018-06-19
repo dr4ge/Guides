@@ -1,0 +1,121 @@
+# Linux VPS Cold Wallet Masternode Guide
+
+### Masternode Cold Wallet
+Cubex Cold Wallet Masternode - The Masternode runs on another computer (VPS), while coins are stored locally in your wallet.
+It is a more secure approach, as the public IP address associated with the Masternode is not the same as the wallet IP address.
+In addition, shut down of the wallet does not affect the Masternode.
+
+### Prerequisites
+10000 CUB Collateral: The required collateral for the Cubex Masternode setup is.  
+Not more nor less exactly 10000 CUB. 
+A local wallet: The place where you will store the collateral of 10000 CUB.  
+Windows or linux wallets are accepted.  
+SSH client for your VPS: We recommend Putty client if you are on windows or directly ssh from OSX/Linux.
+Here is the download link → https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html
+
+### 1.Send the collateral of 10000 CUB & generate “private key” and “transaction hash”
+Generate a new address in your local wallet **(NOT the VPS)**. Label it with ’MN1’. 
+You can assign any name you want, but for the purpose of this guide we will call it ’MN1’.
+
+Transfer EXACTLY 10000 CUB to the newly generated address. Ensure that the ’Subtract fee from amount’ box is **NOT checked.**  
+The transfer requires 15 confirmations before the Masternode launch. The status of the transaction can be checked in the
+’Overview’ wallet tab or by double clicking the transaction in the ’Transactions’ section.
+
+Open the debug console in your local wallet. (Tools>Debug Console).  
+Paste the command:  
+“masternode genkey”  
+Press ENTER to generate your private key  
+Save the output. It will be needed in upcoming steps.  
+
+**Wait for 15 confirmations of your collateral (10000 CUB) before running the next command!**
+
+Paste the command:  
+“masternode outputs”
+Press ENTER to get a transaction hash and output index.  
+Save the output. It will be needed in upcoming steps  
+
+Open your masternode config: (Tools > Open Masternode Configuration File)  
+Following the example presented in the file, fill in the necessary information in the first blank line while following the correct syntax as shown in the example on the next page.
+**Leave only one space between information**, no spaces or blank lines at the end.
+* **MN1 127.0.0.2:41233** (the external IP address of your VPS and the port it will be running on, must be 41231).
+* **93HaYBVUCYjEMeeH1Y4sBGLALQZE1Yc1K64xiqgX37tGBDQL8Xg** (the masternode private key you generated using the command masternode genkey)
+* **2bcd3c84c84f87eaa86e4e56834c92927a07f9e18718810b92e0d0324456a67c 0** (the transaction hash and output index you generated using the command masternode outputs)
+
+Save this file and close it. In your Cubex wallet, go to Options (Settings>Options).  
+In the ’Wallet’ tab check the ’Show Masternodes Tab’ box. Click OK.
+
+Restart your local Cubex wallet
+
+### 2.Connect to your VPS Terminal with SSH
+* Launch Putty and enter your VPS IP address into the “Host Name” field.
+* Other settings should stay default.
+* It is recommended to save this IP address in Putty. To do so, name it in the ’Saved Sessions’ Box     and ’Save’.
+* Click ’Open’.
+* You will see a pop-up message with a security alert about the keys.
+* Click ’Yes’.
+* Log in to your VPS. The VPS provider should give you both the username and the password.
+
+### 3.Masternode installation and setup
+Login to your VPS with Putty.  
+
+Installation:
+
+git clone https://github.com/cubex-network/cubex-install-script.git
+cd cubex-install-script
+bash cub_install.sh
+
+After Installation:  
+Navigate to your VPS cub.conf:
+nano /root/.cub/cub.conf
+and set the following configuration
+
+Configuration: 
+rpcuser=<random username>
+rpcpassword=<random password>
+rpcallowip=127.0.0.1
+listen=1
+server=1
+daemon=1
+port=41231
+logintimestamps=1
+maxconnections=256
+masternode=1
+externalip=<Your VPS IP>:41231
+masternodeprivkey=<your priv key you have already generated from the windows> 
+
+Note: if you already find a masternode priv key in cub.conf then replace "masternode priv key" 
+with your priv key you have already generated from the windows wallet in the above steps of this guide.    
+Here is an example of what to type:  
+masternode = <Replace With the one you have already generated from the windows>       
+
+Also add nodes at the end of cub.conf to sync the wallet 
+
+addnode=163.172.158.49:41231
+addnode=104.236.113.239:41231 
+addnode=159.65.117.164:41231 
+addnode=54.37.75.15:41231 
+addnode=46.181.43.61:41231
+
+ctrl + o → to save the file 
+press Enter for yes
+ctrl + x → to exit the file
+
+After the steps above, stop CUB.service by following command
+systemctl stop cub
+
+Now start again CUB.service by following command
+Systemctl start cub
+
+Wait for the wallet to fully synchronize. You can check the status by the following command
+“cub-cli getinfo” 
+The number of “blocks” should match that of the latest block shown in the Cubex Explorer https://cub.coinexplorer.xyz
+
+
+### 4.Starting the Masternode
+Open the ’Masternodes’ tab in your local Cubex wallet.  
+You should see ’MN1’ in ’Your Masternodes’ tab.  
+Select ’MN1’ and click ’Start Alias’.  
+Click ’Yes’.  
+You should be able to see ’Sucessfully started MN1’ message.  
+Congrats!!!, your Cubex Masternode is now running!  
+You should receive first rewards within 24-48 hours.  
